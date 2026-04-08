@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SYSA12 Tentamen Quiz</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; margin: 0; }
+    textarea { resize: vertical; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-type="module">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+/* ────────────── Concept quiz data (50 questions) ────────────── */
+const CONCEPT_QUESTIONS = [
+  {id:1,category:"Kap 3 – Riktlinjer & Principer",question:"Vad innebär Shneidermans \"Eight Golden Rules of Interface Design\"?",options:["Åtta principer för gränssnittsdesign som inkluderar bl.a. sträva efter konsistens, erbjuda informativ feedback, och stödja undo","Åtta regler för databassäkerhet","Åtta steg i en agil utvecklingsprocess","Åtta principer för färgval i webbdesign"],correct:[0],multi:false,explanation:"Shneidermans Eight Golden Rules är grundläggande designprinciper: sträva efter konsistens, erbjud informativ feedback, designa dialoger med avslut, förebygg fel, tillåt enkel felhantering, tillåt undo, stöd intern kontroll, och minska belastning på korttidsminnet."},
+  {id:2,category:"Kap 3 – Riktlinjer & Principer",question:"Vad är skillnaden mellan guidelines, principles och theories inom HCI?",options:["Guidelines är specifika regler, principles är bredare, och theories är testade och generaliserbara modeller","De betyder alla samma sak men används i olika sammanhang","Theories är minst viktiga, guidelines är mest generella","Principles gäller bara för mobildesign"],correct:[0],multi:false,explanation:"Guidelines är specifika, ofta plattformsbundna regler (t.ex. Apples HIG). Principles är bredare och mer generaliserbara (t.ex. 'sträva efter konsistens'). Theories är vetenskapligt testade modeller som kan vara deskriptiva, förklarande, preskriptiva eller prediktiva."},
+  {id:3,category:"Kap 3 – Teorier",question:"Vilka är de fyra nivåerna i 'design-by-levels'-teorin (Foley et al.)?",options:["Konceptuell, semantisk, syntaktisk och lexikal nivå","Fysisk, logisk, visuell och auditiv nivå","Input, process, output och feedback","Novice, intermediate, expert och master"],correct:[0],multi:false,explanation:"Design-by-levels-teorin delar upp gränssnitt i: konceptuell nivå (användarens mentala modell), semantisk nivå (betydelsen av input/output), syntaktisk nivå (hur handlingar sätts samman) och lexikal nivå (specifika enheter och mekanismer som knapptryckningar)."},
+  {id:4,category:"Kap 3 – Teorier",question:"Vad beskriver Normans 'gulf of execution' och 'gulf of evaluation'?",options:["Gulf of execution = glappet mellan intention och tillåtna handlingar; Gulf of evaluation = glappet mellan systemets representation och användarens förväntningar","Båda handlar om hur snabbt systemet svarar","De beskriver skillnaden mellan nybörjare och experter","De mäter hur lång tid det tar att lära sig ett system"],correct:[0],multi:false,explanation:"Gulf of execution är glappet mellan vad användaren vill göra och vad systemet tillåter. Gulf of evaluation är glappet mellan systemets respons och vad användaren förväntar sig. Normans mål är att minimera båda genom god design."},
+  {id:5,category:"Kap 3 – Teorier",question:"Vad står GOMS för och vad används modellen till?",options:["Goals, Operators, Methods, Selection rules – predikterar tidsåtgång för expertanvändare","Graphical Output Management System – hanterar skärmutskrifter","General Object Modeling Standard – standardiserar objektmodellering","Guidelines for Online Menu Systems – designar menyer"],correct:[0],multi:false,explanation:"GOMS (Goals, Operators, Methods, Selection rules) delar upp mål i operatorer (handlingar) och metoder. Användare tillämpar selektionsregler för att välja bland alternativa metoder. Modellen predikterar tidsåtgång och fungerar bäst för expertanvändare utan fel."},
+  {id:6,category:"Kap 3 – Teorier",question:"Vad är skillnaden mellan micro-HCI och macro-HCI?",options:["Micro-HCI fokuserar på mätbar prestanda (hastighet/fel) i kontrollerade experiment; Macro-HCI fokuserar på användarupplevelse, kontext och social interaktion över tid","Micro-HCI gäller mobilskärmar, macro-HCI gäller stora skärmar","Micro-HCI är gammal teori, macro-HCI är modern","Det finns ingen skillnad, det är samma begrepp"],correct:[0],multi:false,explanation:"Micro-HCI studerar mätbar prestanda (sekunder, felfrekvens) i kontrollerade labbmiljöer. Macro-HCI betonar användarupplevelsen i verkliga kontexter över veckor/månader, inklusive social interaktion, emotionella faktorer och etnografisk observation."},
+  {id:7,category:"Kap 3 – Teorier",question:"Vad innebär 'information scent' inom information foraging theory?",options:["Hur väl en länk eller ledtråd indikerar vad som finns på destinationen, relativt till användarens uppgift","Hur snabbt en sökmotor returnerar resultat","Hur många bilder en webbsida innehåller","Doftbaserade gränssnitt för multisensorisk feedback"],correct:[0],multi:false,explanation:"Information scent beskriver hur bra en länk eller visuell ledtråd antyder vad användaren hittar vid destinationen. En länk med texten 'ladda ner demo' har god scent om användaren söker efter en demo."},
+  {id:8,category:"Kap 3 – Teorier",question:"Vilka teorityperna finns enligt boken? (Välj ALLA korrekta)",options:["Deskriptiv – beskriver med konsekvent terminologi och taxonomier","Förklarande (explanatory) – beskriver sekvenser av händelser och orsak/verkan","Preskriptiv – ger designers tydlig vägledning","Prediktiv – möjliggör jämförelser genom numeriska förutsägelser"],correct:[0,1,2,3],multi:true,explanation:"Alla fyra är korrekta. Deskriptiva teorier ger terminologi/taxonomier, förklarande teorier visar orsakssamband, preskriptiva teorier ger designvägledning, och prediktiva teorier möjliggör jämförelser genom numeriska förutsägelser."},
+  {id:9,category:"Kap 3 – Teorier",question:"Vad handlar 'consistency theories' om inom HCI?",options:["Att terminologi, layout, färger, ikoner etc. ska vara enhetliga så användare lär sig snabbare och gör färre fel","Att alla system ska se likadana ut","Att programkoden ska vara konsistent","Att alla länder ska använda samma designstandard"],correct:[0],multi:false,explanation:"Konsistensteori innebär att objekt och handlingar (t.ex. delete/insert) ska följa ordnade regler. Inkonsistens i terminologi saktar ner användare med 20–25%, medan inkonsistens i t.ex. knappplacering saktar ner med 5–10%."},
+  {id:10,category:"Kap 3 – Teorier",question:"Vad beskriver 'contextual theories' (kontextuella teorier) inom macro-HCI?",options:["Att design måste beakta den emotionella, fysiska och sociala kontexten – användares handlingar är situerade i tid och plats","Att datorer ska användas i kontorskontext enbart","Att alla designbeslut ska dokumenteras i kontextdiagram","Att gränssnittet ska anpassa sig efter språk"],correct:[0],multi:false,explanation:"Kontextuella teorier bygger på Suchmans 'situated action' – användares beteende är beroende av andra människor och miljön. Distributed cognition innebär att kunskap finns inte bara i användarens huvud utan även i omgivningen."},
+  {id:11,category:"Kap 3 – Teorier",question:"Vad beskriver Reader-to-Leader-modellen?",options:["Hur användare utvecklas i onlinegemenskaper: från läsare → fixare → registrerad användare → författare → deltagare → administratör","Hur man utbildar teamledare i UX","Hur läsbar text bör designas","Ledarskapsmodell för projektledare inom IT"],correct:[0],multi:false,explanation:"Reader-to-Leader-modellen (Preece & Shneiderman) beskriver hur användare i onlinegemenskaper som Wikipedia gradvis tar mer ansvar – från passiv läsare till aktiv administratör."},
+  {id:12,category:"Kap 4 – Design",question:"Vilka är de fyra faserna i den iterativa designprocessen?",options:["Kravanalys → Preliminär & detaljerad design → Implementering → Utvärdering","Planering → Kodning → Testning → Lansering","Forskning → Prototyp → Marknad → Support","Brainstorm → Skiss → Kod → Feedback"],correct:[0],multi:false,explanation:"Designprocessen har fyra faser som upprepas iterativt: (1) Kravanalys samlar krav, (2) Preliminär & detaljerad design skapar arkitektur och interaktionsplaner, (3) Implementering bygger systemet, (4) Utvärdering testar mot kraven."},
+  {id:13,category:"Kap 4 – Design",question:"Vad innebär User-Centered Design (UCD)?",options:["En designprocess som i varje fas utgår från slutanvändarnas behov, önskemål och begränsningar","Att användaren själv kodar gränssnittet","Att designern bestämmer allt utan att konsultera användare","Att man bara testar med en enda användare"],correct:[0],multi:false,explanation:"UCD involverar slutanvändare i alla faser av designprocessen. Det minskar risken att bygga 'fel system', förkortar utvecklingstid, minskar underhållskostnader, och leder till system som är lättare att lära sig och använda."},
+  {id:14,category:"Kap 4 – Design",question:"Hur skiljer sig participatory design (PD) från user-centered design (UCD)?",options:["I PD är användare aktiva designpartners i teamet, inte bara informanter eller testpersoner","PD och UCD är identiska","I PD deltar inga användare alls","PD fokuserar bara på fysisk produktdesign"],correct:[0],multi:false,explanation:"I participatory design (även kallat cooperative design i Skandinavien) är användare fullvärdiga medlemmar i designteamet. Roller varierar från 'testers' till 'informants' till 'partners'."},
+  {id:15,category:"Kap 4 – Design",question:"Vad kännetecknar agile interaction design?",options:["Lättviktsprocesser med snabba cykler, skisser, low-fidelity mockups och snabba usability-inspektioner","Extremt detaljerad dokumentation före all kodning","Aldrig någon testning eller utvärdering","Bara stora företag kan använda det"],correct:[0],multi:false,explanation:"Agile interaction design använder lättviktsprocesser anpassade till agil utveckling: skisser istället för dyr dokumentation, low-fidelity mockups istället för high-fidelity prototyper, och snabba usability-inspektioner."},
+  {id:16,category:"Kap 4 – Designmetoder",question:"Vad innebär konvergent respektive divergent tänkande i designprocessen?",options:["Divergent = generera många idéer/bredda lösningsrymden; Konvergent = smalna av och välja bland lösningar","Konvergent = kreativt brainstormande; Divergent = analytiskt beslutsfattande","De är samma sak","Divergent tänkande används bara av nybörjare"],correct:[0],multi:false,explanation:"Divergent tänkande vidgar lösningsrymden genom kreativitet och ideation. Konvergent tänkande smalnar av den genom att välja bland alternativ. Bäst design uppnås genom att alternera mellan divergent och konvergent tänkande iterativt."},
+  {id:17,category:"Kap 4 – Designmetoder",question:"Vad är en use case?",options:["Ett formaliserat scenario som fångar en operation mellan en användare (aktör) och systemet steg för steg","En lista över programmeringsspråk","Ett testfall för enhetstestning","Ett marknadsföringsverktyg"],correct:[0],multi:false,explanation:"En use case är ett formaliserat scenario som beskriver interaktionen mellan en aktör (användare) och systemet. Systemet ska vara summan av alla sina use cases."},
+  {id:18,category:"Kap 4 – Designmetoder",question:"Vilka tre kravtyper ingår i ett kravdokument? (Välj ALLA korrekta)",options:["Funktionella krav – specifikt beteende systemet ska stödja","Icke-funktionella krav – övergripande kriterier för drift (prestanda, tillförlitlighet etc.)","User experience-krav – icke-funktionella krav specifikt för användarinteraktion (navigation, färger etc.)","Marknadsföringskrav – hur produkten ska säljas"],correct:[0,1,2],multi:true,explanation:"De tre kravtyperna är: funktionella krav (specifikt systembeteende, ofta i use cases), icke-funktionella krav (prestanda, tillförlitlighet, hårdvara) och user experience-krav (navigation, input, färger, interaktionskrav)."},
+  {id:19,category:"Kap 4 – Designmetoder",question:"Vad innebär 'prototyping' och vilka fidelitetsnivåer finns?",options:["Low-fidelity (papper/sticky notes), medium-fidelity (wireframes med viss interaktion), high-fidelity (ser ut som slutprodukten)","Det finns bara en nivå: färdig produkt","Low = skiss, High = tryckt broschyr","Prototyping görs bara med programkod"],correct:[0],multi:false,explanation:"Low-fidelity: papper, sticky notes, pappersmockups. Medium-fidelity: wireframes med standardiserade element och grundläggande navigation. High-fidelity: ser nästan ut som slutprodukten med viss funktionalitet."},
+  {id:20,category:"Kap 4 – Designmetoder",question:"Vad innebär etnografisk observation i interaktionsdesign?",options:["Att observera användare i deras verkliga miljö (arbetsplats/hem) för att förstå kontext, beteende och behov","Att studera folkgrupper i avlägsna länder","Att skicka ut enkäter via e-post","Att titta på konkurrenters produkter"],correct:[0],multi:false,explanation:"Etnografisk observation innebär att designers besöker användarnas naturliga miljö för att lyssna, observera och ibland delta. Till skillnad från traditionell etnografi begränsas detta ofta till dagar eller timmar."},
+  {id:21,category:"Kap 5 – Utvärdering",question:"Vad är skillnaden mellan between-subjects och within-subjects experimentdesign?",options:["Between-subjects: olika grupper får olika behandling; Within-subjects: samma person gör alla uppgifter","De är samma sak","Between-subjects kräver färre deltagare","Within-subjects kan inte ha ordningseffekter"],correct:[0],multi:false,explanation:"Between-subjects: separata grupper får olika behandlingar, kräver fler deltagare. Within-subjects: varje deltagare gör alla uppgifter, kräver färre deltagare men riskerar ordningseffekter. Counterbalancing behövs vid within-subjects."},
+  {id:22,category:"Kap 5 – Utvärdering",question:"Vad är oberoende respektive beroende variabler i ett experiment?",options:["Oberoende variabel = det som manipuleras; Beroende variabel = det som mäts som resultat","Oberoende variabel = resultatet; Beroende variabel = orsaken","De är samma sak","Oberoende variabel = deltagarnas ålder; Beroende variabel = alltid tid"],correct:[0],multi:false,explanation:"Oberoende variabel är det forskaren manipulerar (t.ex. två olika gränssnittsdesigner). Beroende variabel är det som mäts (t.ex. tid, felfrekvens, användarnöjdhet)."},
+  {id:23,category:"Kap 5 – Utvärdering",question:"Vilka utvärderingsmetoder beskrivs i boken? (Välj ALLA korrekta)",options:["Expert reviews (t.ex. heuristisk utvärdering)","Usability-tester (labb, fält, 'in-the-wild')","Enkäter och intervjuer","Kontrollerade experiment"],correct:[0,1,2,3],multi:true,explanation:"Boken beskriver flera utvärderingsmetoder: expert reviews, usability-tester i olika miljöer, enkäter/intervjuer för subjektiv data, och kontrollerade experiment för statistiskt signifikanta resultat."},
+  {id:24,category:"Kap 7 – Direktmanipulation",question:"Vilka tre principer definierar direktmanipulation?",options:["Kontinuerlig representation av objekt med visuella metaforer; Fysiska handlingar istället för komplex syntax; Snabba, reversibla handlingar med omedelbar feedback","Textuell input, fördröjd respons, irreversibla handlingar","Dolda objekt, komplexa kommandon, sen feedback","Menybaserad navigation, ikonklick, tangentbordskommandon"],correct:[0],multi:false,explanation:"De tre principerna är: (1) Kontinuerlig visuell representation med meningsfulla metaforer, (2) Fysiska handlingar eller knapptryckningar istället för komplex syntax, (3) Snabba, inkrementella, reversibla handlingar vars effekt syns direkt."},
+  {id:25,category:"Kap 7 – Direktmanipulation",question:"Vad menas med 'translational distance' (styrka) vid direktmanipulation?",options:["Graden av indirekthet mellan användarens fysiska handlingar och handlingar i det virtuella rummet","Fysiskt avstånd till skärmen","Hur långt musen rör sig","Nätverksfördröjning"],correct:[0],multi:false,explanation:"Translational distance beskrivs som ett kontinuum: Svag (mus/joystick), Medium (touchscreen), Stark (gestigenkänning, tangible interfaces), Immersiv (VR med headset). Ju kortare avstånd, desto mer 'direkt' känns interaktionen."},
+  {id:26,category:"Kap 7 – Direktmanipulation",question:"Vad är WYSIWYG?",options:["What You See Is What You Get – det som visas på skärmen motsvarar slutresultatet","Where You Search Is Where You Go","Why You Should Improve Web Graphics","Wide Yield System for Intelligent Web Generation"],correct:[0],multi:false,explanation:"WYSIWYG (What You See Is What You Get) innebär att det som visas på skärmen direkt motsvarar det slutgiltiga resultatet, t.ex. i moderna ordbehandlare."},
+  {id:27,category:"Kap 7 – Immersiva miljöer",question:"Vad är skillnaden mellan augmented reality (AR) och virtual reality (VR)?",options:["AR lägger till digital information ovanpå den verkliga omgivningen; VR blockerar omgivningen helt och skapar en artificiell värld","De är samma sak","AR kräver headset, VR kräver det inte","VR är äldre teknik, AR är nyare"],correct:[0],multi:false,explanation:"AR behåller användaren i sin normala omgivning men lägger till ett transparent överlägg med information. VR placerar användaren i en helt immersiv, artificiell miljö via headset som blockerar omgivningen."},
+  {id:28,category:"Kap 8 – Navigation",question:"Vad innebär 'breadcrumbs' i navigationsdesign?",options:["En sekventiell stig som visar var användaren befinner sig i webbplatsens hierarki och möjliggör navigation tillbaka","Småkakor som webbsidan sparar","Animationer som leder användarens blick","En typ av menystruktur för mobilappar"],correct:[0],multi:false,explanation:"Breadcrumbs (brödsmulor) visar användarens plats i webbplatsens hierarki (t.ex. Hem > Produkter > Telefoner) och tillåter direkt navigation till högre nivåer."},
+  {id:29,category:"Kap 8 – Navigation",question:"Vilka navigationselement är centrala i webbdesign? (Välj ALLA korrekta)",options:["Menyer (horisontella, vertikala, dropdown)","Breadcrumbs","Formulär och dialogrutor (form fill-in)","Sökfunktioner"],correct:[0,1,2,3],multi:true,explanation:"Alla fyra är centrala navigationselement. Menyer ger åtkomst till funktioner, breadcrumbs visar position i hierarkin, formulär/dialoger samlar input, och sökfunktioner låter användare hitta information direkt."},
+  {id:30,category:"Kap 9 – Språk & Kommandon",question:"Vad är fördelen med kommandospråk jämfört med menyer?",options:["Expertanvändare kan arbeta mycket snabbare med kompakta kommandon, men inlärningströskeln är högre","Kommandon är alltid bättre för alla","Menyer är alltid snabbare","Kommandospråk kräver ingen inlärning"],correct:[0],multi:false,explanation:"Kommandospråk ger expertanvändare hög effektivitet genom kompakt notation, men kräver inlärning och memorering. Menyer är lättare att lära sig (recognition over recall) men kan vara långsammare för erfarna användare."},
+  {id:31,category:"Kap 9 – Språk & Kommandon",question:"Vilka utmaningar finns med talbaserad interaktion (speech recognition)?",options:["Igenkänningsfel, svårt i bullriga miljöer, saknar visuell feedback, och användare kan känna sig obekväma att tala högt","Det fungerar perfekt i alla situationer","Det är bara användbart för blinda","Taligenkänning har inga utmaningar"],correct:[0],multi:false,explanation:"Taligenkänning har flera utmaningar: igenkänningsprecision, bakgrundsbuller, brist på visuell feedback, integritetsfrågor, och begränsad förmåga att hantera komplexa kommandon."},
+  {id:32,category:"Kap 10 – Enheter",question:"Vad är Fitts's Law?",options:["En prediktiv modell: tiden att nå ett mål beror på avståndet till målet och målets storlek – större och närmare mål nås snabbare","En lag om att alla knappar ska vara lika stora","En teori om tangentbordslayout","En princip om att användare föredrar touchskärmar"],correct:[0],multi:false,explanation:"Fitts's Law predikterar att tiden att peka på ett mål ökar med avståndet och minskar med målets storlek. Viktiga knappar bör vara stora och nära cursor-startpositionen."},
+  {id:33,category:"Kap 10 – Enheter",question:"Vilka typer av pekdon (pointing devices) nämns i boken? (Välj ALLA korrekta)",options:["Mus","Touchpad/trackpad","Touchscreen","Joystick"],correct:[0,1,2,3],multi:true,explanation:"Boken diskuterar flera pekdon: mus, touchpad, touchscreen, joystick, trackball, stylus m.fl. Varje enhet har olika styrkor beroende på uppgift och kontext."},
+  {id:34,category:"Kap 11 – Kommunikation",question:"Vilka designfaktorer är viktiga för samarbetssystem? (Välj ALLA korrekta)",options:["Kognitiva faktorer – informationsbelastning och delat medvetande","Individuella faktorer – personlighet, erfarenhet, förtroende","Kollektiva faktorer – gruppstorlek, sociala normer, governance","Estetiska faktorer – färgval och typsnitt"],correct:[0,1,2],multi:true,explanation:"Designfaktorer för samarbetssystem delas i tre kategorier: kognitiva (awareness, informationsbelastning), individuella (personlighet, förtroende, erfarenhet) och kollektiva (gruppstorlek, normer, styrning)."},
+  {id:35,category:"Kap 12 – Användarupplevelse",question:"Vilka principer gäller för felmeddelanden (error messages)?",options:["Specifika, konstruktiva, i positiv ton, och hjälper användaren lösa problemet istället för att skuldbelägga","Så tekniska och detaljerade som möjligt","Korta och utan förklaring","Felmeddelanden ska undvikas helt"],correct:[0],multi:false,explanation:"Bra felmeddelanden är specifika (förklara vad som gick fel), konstruktiva (föreslå lösning), i positiv ton (skuldbelägg inte användaren), och undviker oklar jargong."},
+  {id:36,category:"Kap 12 – Användarupplevelse",question:"Varför avråder boken från antropomorfisk design (att datorer beter sig som människor)?",options:["Användare kan bli förvirrade, felaktigt tillskriva intelligens till systemet, och det kan skapa orealistiska förväntningar","Det är alltid bättre att ha mänskliga agenter","Antropomorfism fungerar perfekt i alla sammanhang","Boken uppmuntrar faktiskt antropomorfisk design"],correct:[0],multi:false,explanation:"Boken rekommenderar nonanthropomorphic design: att undvika att datorer verkar mänskliga. Historiskt har antropomorfa agenter (t.ex. Microsofts Clippy) misslyckats. Verktygsmetaforen föredras."},
+  {id:37,category:"Kap 12 – Användarupplevelse",question:"Vad innebär begreppet 'display design' i kontexten av gränssnittsdesign?",options:["Hur information organiseras på skärmen – layout, fältplacering, sekvens av skärmvyer, och visuell hierarki","Val av bildskärmsmodell","Design av fysiska skärmramar","Att välja rätt skärmstorlek"],correct:[0],multi:false,explanation:"Display design handlar om informationsorganisation på skärmen: field layout, sekvensen av displayar, visuell hierarki, och hur användare effektivt kan skanna och bearbeta den visade informationen."},
+  {id:38,category:"Kap 14 – Dokumentation & Hjälp",question:"Vilka former av användarstöd beskrivs i boken? (Välj ALLA korrekta)",options:["Online-tutorials och animerade demonstrationer","Tooltips och kontextkänslig hjälp","Onlinegemenskaper och forum","Tryckta manualer och referensmaterial"],correct:[0,1,2,3],multi:true,explanation:"Boken beskriver flera former: online-tutorials, animerade demos, tooltips/kontextkänslig hjälp, onlinegemenskaper/forum, och traditionella tryckta manualer."},
+  {id:39,category:"Kap 15 – Informationssökning",question:"Vilka fem steg ingår i Five-Stage Search Framework?",options:["Formulation → Initiation of action → Review of results → Refinement → Use","Search → Find → Read → Save → Share","Plan → Execute → Monitor → Adjust → Complete","Query → Filter → Sort → Select → Download"],correct:[0],multi:false,explanation:"Five-Stage Search Framework: (1) Formulation, (2) Initiation, (3) Review, (4) Refinement, (5) Use. Användare kan hoppa mellan stegen."},
+  {id:40,category:"Kap 15 – Informationssökning",question:"Vad innebär 'dynamic queries' och 'faceted search'?",options:["Dynamic queries: realtidsfiltrering med sliders/knappar som direkt uppdaterar resultaten; Faceted search: filtrering genom multipla kategorier/dimensioner","Dynamic queries är SQL-kommandon; Faceted search är ansiktssökning","De är samma sak","Dynamic queries kräver programmering; Faceted search kräver AI"],correct:[0],multi:false,explanation:"Dynamic queries låter användare interaktivt filtrera data med sliders och knappar med omedelbar visuell uppdatering. Faceted search tillåter filtrering genom flera kategorier samtidigt."},
+  {id:41,category:"Tvärsgående begrepp",question:"Vad innebär 'mental model' (mental modell) inom HCI?",options:["Användarens interna representation av hur ett system fungerar – deras förståelse av systemets struktur och beteende","En 3D-modell av användargränssnittet","En matematisk modell för att beräkna svarstider","En databasmodell"],correct:[0],multi:false,explanation:"En mental modell är användarens interna representation av hur ett system fungerar. God design bygger en korrekt mental modell."},
+  {id:42,category:"Tvärsgående begrepp",question:"Vad innebär 'affordance' i designkontext?",options:["En egenskap hos ett objekt som signalerar hur det kan användas – t.ex. en knapp som ser tryckbar ut","Priset på en designtjänst","Hur snabbt en sida laddar","En typ av animationseffekt"],correct:[0],multi:false,explanation:"Affordance (Don Norman) är de uppfattade egenskaperna hos ett objekt som antyder hur det kan användas. I digital design signalerar visuella ledtrådar (t.ex. skuggor på knappar) interaktionsmöjligheter."},
+  {id:43,category:"Tvärsgående begrepp",question:"Vad innebär 'recognition over recall' som designprincip?",options:["Det är lättare för användare att känna igen alternativ (t.ex. i menyer) än att minnas kommandon utantill","Att systemet ska minnas allt åt användaren","Att använda biometrisk igenkänning","Att designers ska dokumentera alla designbeslut"],correct:[0],multi:false,explanation:"Recognition over recall innebär att design ska visa tillgängliga alternativ istället för att kräva att användare minns kommandon. Visuella ledtrådar och synliga alternativ minskar kognitiv belastning."},
+  {id:44,category:"Tvärsgående begrepp",question:"Vad innebär 'universal usability' (universell användbarhet)?",options:["Design av produkter och tjänster som är användbara för alla medborgare, inklusive personer med funktionsnedsättningar","Att ett system ska fungera i alla länder","Att alla ska använda samma operativsystem","Att universitetsstudenter ska kunna använda systemet"],correct:[0],multi:false,explanation:"Universal usability innebär att designa för alla användare, inklusive personer med synnedsättningar, hörselnedsättningar, motoriska begränsningar och kognitiva svårigheter."},
+  {id:45,category:"Tvärsgående begrepp",question:"Normans sju steg i handlingsmodellen (stages of action) – vilka ingår? (Välj ALLA korrekta)",options:["Bilda mål (forming the goal)","Utföra handlingen (executing the action)","Uppfatta systemets tillstånd (perceiving the system state)","Utvärdera resultatet (evaluating the outcome)"],correct:[0,1,2,3],multi:true,explanation:"Normans sju steg: (1) Bilda mål, (2) Bilda intention, (3) Specificera handling, (4) Utföra handling, (5) Uppfatta systemtillstånd, (6) Tolka systemtillstånd, (7) Utvärdera resultat."},
+  {id:46,category:"Tvärsgående begrepp",question:"Vad är heuristisk utvärdering?",options:["En expert review-metod där utvärderare bedömer ett gränssnitt mot en uppsättning etablerade användbarhetsprinciper (heuristiker)","En automatiserad testmetod","En typ av A/B-test","En metod för att mäta svarstider"],correct:[0],multi:false,explanation:"Heuristisk utvärdering (Nielsen) innebär att experter granskar ett gränssnitt mot heuristiker som synlighet av systemstatus, matchning med verkligheten, användarkontroll, konsistens, felförebyggande m.fl. Vanligtvis 3–5 utvärderare."},
+  {id:47,category:"Tvärsgående begrepp",question:"Vad innebär 'storyboarding' som designmetod?",options:["Att använda grafiska skisser och illustrationer för att visa viktiga steg i ett scenario för användarinteraktion","Att skriva databaskod","Att designa fysiska anslagstavlor","Att planera en filmproduktion"],correct:[0],multi:false,explanation:"Storyboarding använder sekvenser av skisser/illustrationer för att visa hur en användare interagerar med systemet steg för steg."},
+  {id:48,category:"Tvärsgående begrepp",question:"Vad innebär 'design patterns' inom interaktionsdesign?",options:["Konkreta, återanvändbara lösningar på vanligt förekommande designproblem","Mönster i tyg för att klä datorstolar","Grafiska bakgrundsmönster","Programmeringsmönster enbart för backend"],correct:[0],multi:false,explanation:"Design patterns är återanvändbara lösningar på vanliga designproblem, ursprungligen från arkitektur (Alexander) och mjukvaruutveckling."},
+  {id:49,category:"Kap 3 – Teorier",question:"Vilka fem attribut ingår i innovationsdiffusion (Rogers) som påverkar adoption? (Välj ALLA korrekta)",options:["Relativ fördel (relative advantage)","Kompatibilitet (compatibility)","Testbarhet (trial-ability) och observerbarhet (observability)","Mindre komplexitet (less complexity)"],correct:[0,1,2,3],multi:true,explanation:"Rogers innovationsdiffusion har fem attribut: (1) relativ fördel, (2) kompatibilitet, (3) testbarhet, (4) observerbarhet, (5) mindre komplexitet."},
+  {id:50,category:"Tvärsgående begrepp",question:"Vad innebär 'cognitive walkthrough' som utvärderingsmetod?",options:["En expert-metod där man steg för steg går igenom ett scenario och bedömer om användaren kan förstå och utföra varje steg korrekt","En promenad genom kontoret för att samla idéer","En fysisk testbana för användare","En automatiserad kodsökning"],correct:[0],multi:false,explanation:"Cognitive walkthrough innebär att utvärderare steg för steg går igenom ett scenario och vid varje steg frågar: Kommer användaren försöka uppnå rätt effekt? Ser användaren rätt handling? Förstår användaren feedbacken?"}
+];
+
+/* ────────────── Textfil-generering för rättning ────────────── */
+function generateGradingFile(examQs, answers, totalMax, timeUsed) {
+  const sep = '═'.repeat(70);
+  const thinSep = '─'.repeat(70);
+  let txt = '';
+
+  txt += sep + '\n';
+  txt += '  SYSA12 INTERAKTIONSDESIGN — TENTAMEN FÖR RÄTTNING\n';
+  txt += sep + '\n\n';
+  txt += 'Kurs: SYSA12 Interaktionsdesign, Lunds universitet\n';
+  txt += 'Kurslitteratur: Designing the User Interface, 6th Ed. — Shneiderman et al.\n';
+  txt += 'Maxpoäng: ' + totalMax + 'p  |  Tid använd: ' + timeUsed + '\n';
+  txt += 'Datum: ' + new Date().toLocaleDateString('sv-SE') + '\n';
+
+  txt += '\n' + sep + '\n';
+  txt += '  SÅ HÄR FÅR DU PROVET RÄTTAT\n';
+  txt += sep + '\n\n';
+  txt += 'Det enda du behöver göra är att ladda upp den här filen till en AI\n';
+  txt += '(t.ex. ChatGPT, Claude, Gemini) — den innehåller allt som behövs\n';
+  txt += 'för att rätta dina svar: frågorna, dina svar, modellsvaren och\n';
+  txt += 'instruktioner för bedömning. Ladda upp filen och be AI:n rätta provet.\n';
+
+  txt += '\n' + sep + '\n';
+  txt += '  INSTRUKTIONER FÖR RÄTTNING (till AI)\n';
+  txt += sep + '\n\n';
+  txt += 'Du är examinator för kursen SYSA12 Interaktionsdesign. Rätta studentens\n';
+  txt += 'svar nedan enligt följande:\n\n';
+  txt += '1. För varje fråga: jämför studentens svar med modellsvaret (A-nivå referenssvar).\n';
+  txt += '2. Bedöm hur många poäng studenten förtjänar av maxpoängen, baserat på:\n';
+  txt += '   - Korrekthet: Är fakta och begrepp korrekta?\n';
+  txt += '   - Fullständighet: Tar svaret upp alla viktiga aspekter från modellsvaret?\n';
+  txt += '   - Djup: Motiveras påståenden med exempel och resonemang?\n';
+  txt += '   - Terminologi: Används korrekt terminologi från kurslitteraturen?\n';
+  txt += '3. Skriv kort motivering för varje fråga.\n';
+  txt += '4. Summera totalpoäng och ge ett slutbetyg enligt skalan:\n';
+  txt += '   A = 85–100% | B = 75–84% | C = 65–74% | D = 55–64% | E = 50–54% | U (Underkänd) < 50%\n';
+  txt += '5. Ge konstruktiv feedback: vad var bra, vad bör studenten fokusera på att förbättra.\n';
+
+  examQs.forEach((q, i) => {
+    const userAns = (answers[q.id] || '').trim() || '(Inget svar)';
+    txt += '\n' + sep + '\n';
+    txt += '  FRÅGA ' + (i + 1) + '  |  ' + q.points + '  |  Kategori: ' + q.category + '\n';
+    txt += '  Frekvens på tentamen: ' + q.frequency + '\n';
+    txt += sep + '\n\n';
+    txt += 'FRÅGETEXT:\n' + thinSep + '\n';
+    txt += q.question + '\n\n';
+    txt += 'STUDENTENS SVAR:\n' + thinSep + '\n';
+    txt += userAns + '\n\n';
+    txt += 'MODELLSVAR (A-nivå referens):\n' + thinSep + '\n';
+    txt += q.answer + '\n\n';
+    txt += 'Rättning fråga ' + (i+1) + ': _____ / ' + q.points + '\n';
+    txt += 'Motivering: \n';
+  });
+
+  txt += '\n' + sep + '\n';
+  txt += '  SAMMANFATTNING\n';
+  txt += sep + '\n\n';
+  examQs.forEach((q, i) => {
+    txt += 'Fråga ' + (i+1) + ' (' + q.category + '): _____ / ' + q.points + '\n';
+  });
+  txt += '\nTOTALPOÄNG: _____ / ' + totalMax + 'p\n';
+  txt += 'PROCENT: _____ %\n';
+  txt += 'SLUTBETYG: _____\n\n';
+  txt += 'Övergripande kommentar och förbättringsförslag:\n';
+  txt += thinSep + '\n\n';
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'SYSA12_tentamen_för_rättning.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ────────────── helpers ────────────── */
+function getFreqBadge(freq) {
+  if (freq.startsWith("Mycket")) return { bg: "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300", label: "Mycket hög" };
+  if (freq.startsWith("Hög"))    return { bg: "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300", label: "Hög" };
+  if (freq.startsWith("Medel"))  return { bg: "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300", label: "Medel" };
+  return { bg: "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300", label: "Låg" };
+}
+function getFreqLevel(f) {
+  if (f.startsWith("Mycket")) return 4;
+  if (f.startsWith("Hög"))    return 3;
+  if (f.startsWith("Medel"))  return 2;
+  return 1;
+}
+function parseMaxPts(pts) {
+  const m = pts.match(/(\d+)/g);
+  if (!m) return 10;
+  return m.length > 1 ? +m[1] : +m[0];
+}
+function fmtTime(s) {
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), ss = s%60;
+  return `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+
+/* ────────────── ConceptQuiz component ────────────── */
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function ConceptQuiz({ onBack, dark, setDark }) {
+  // Shuffle questions and options once on mount
+  const [shuffledQs] = useState(() => {
+    return shuffleArray(CONCEPT_QUESTIONS).map(q => {
+      // Create index mapping: shuffled position -> original index
+      const indices = q.options.map((_, i) => i);
+      const shuffledIndices = shuffleArray(indices);
+      const shuffledOptions = shuffledIndices.map(i => q.options[i]);
+      // Map correct answers to new positions
+      const newCorrect = q.correct.map(origIdx => shuffledIndices.indexOf(origIdx));
+      return { ...q, options: shuffledOptions, correct: newCorrect };
+    });
+  });
+
+  const [cAnswers, setCAnswers] = useState({});
+  const [cSubmitted, setCSubmitted] = useState({});
+  const [idx, setIdx] = useState(0);
+  const [showSummary, setShowSummary] = useState(false);
+
+  const q = shuffledQs[idx];
+
+  const toggle = useCallback((qId, optIdx, isMulti) => {
+    if (cSubmitted[qId]) return;
+    setCAnswers(prev => {
+      const cur = prev[qId] || [];
+      if (isMulti) return { ...prev, [qId]: cur.includes(optIdx) ? cur.filter(i=>i!==optIdx) : [...cur, optIdx] };
+      return { ...prev, [qId]: [optIdx] };
+    });
+  }, [cSubmitted]);
+
+  const submit = useCallback(qId => {
+    if (!cAnswers[qId] || cAnswers[qId].length === 0) return;
+    setCSubmitted(prev => ({ ...prev, [qId]: true }));
+  }, [cAnswers]);
+
+  const isCorrect = useCallback((qId, correctArr) => {
+    const a = (cAnswers[qId] || []).sort();
+    const c = [...correctArr].sort();
+    return a.length === c.length && a.every((v,i) => v === c[i]);
+  }, [cAnswers]);
+
+  const totalAnswered = Object.keys(cSubmitted).length;
+  const totalCorrect = shuffledQs.filter(q => cSubmitted[q.id] && isCorrect(q.id, q.correct)).length;
+
+  const ThemeBtn = () => (
+    <button onClick={() => setDark(!dark)} className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" title="Växla tema">
+      {dark ? '☀️' : '🌙'}
+    </button>
+  );
+
+  const reset = () => { setCAnswers({}); setCSubmitted({}); setIdx(0); setShowSummary(false); };
+
+  if (showSummary) {
+    const pct = totalAnswered > 0 ? Math.round((totalCorrect / shuffledQs.length) * 100) : 0;
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+        <div className="max-w-3xl mx-auto px-4 py-6">
+          <div className="flex justify-between items-center mb-6">
+            <button onClick={onBack} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">&larr; Tillbaka till start</button>
+            <ThemeBtn />
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">Resultat</h2>
+            <div className={`text-6xl font-extrabold my-4 ${pct >= 70 ? 'text-green-500' : pct >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+              {totalCorrect} / {shuffledQs.length}
+            </div>
+            <p className="text-gray-500 dark:text-gray-400">
+              {pct >= 80 ? 'Utmärkt! Du behärskar begreppen!' : pct >= 60 ? 'Bra jobbat! Gå igenom de du missade.' : 'Fortsätt plugga – du lär dig snabbt!'}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm divide-y divide-gray-100 dark:divide-gray-700 mb-8">
+            {shuffledQs.map((q, i) => {
+              const answered = cSubmitted[q.id];
+              const correct = answered && isCorrect(q.id, q.correct);
+              return (
+                <button key={q.id} onClick={() => { setShowSummary(false); setIdx(i); }} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <span className="text-lg flex-shrink-0">{answered ? (correct ? '✅' : '❌') : '⬜'}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 truncate">{i+1}. {q.question}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center gap-4">
+            <button onClick={reset} className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors">Börja om (ny slumpning)</button>
+            <button onClick={onBack} className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Tillbaka till start</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isSub = cSubmitted[q.id];
+  const correct = isSub && isCorrect(q.id, q.correct);
+  const sel = cAnswers[q.id] || [];
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+      <div className="max-w-3xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <button onClick={onBack} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">&larr; Tillbaka</button>
+          <div className="flex items-center gap-3"><span className="text-sm text-gray-500 dark:text-gray-400">Begrepps-quiz</span><ThemeBtn /></div>
+        </div>
+
+        {/* Progress */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm mb-1">
+            <span>Fråga {idx+1} av {shuffledQs.length}</span>
+            <span className="text-gray-500 dark:text-gray-400">{totalCorrect} rätt av {totalAnswered} besvarade</span>
+          </div>
+          <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-full bg-indigo-600 rounded-full transition-all" style={{width:`${((idx+1)/shuffledQs.length)*100}%`}} />
+          </div>
+        </div>
+
+        {/* Single question */}
+        <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6 border-2 transition-colors ${isSub ? (correct ? 'border-green-300 dark:border-green-700' : 'border-red-300 dark:border-red-700') : 'border-transparent'}`}>
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">{q.category}</span>
+            <span className="text-xs text-gray-400">{q.multi ? 'Flerval – välj alla korrekta' : 'Ettval'}</span>
+          </div>
+          <h3 className="text-base font-semibold leading-relaxed mt-2 mb-4">{q.question}</h3>
+
+          <div className="space-y-2">
+            {q.options.map((opt, optIdx) => {
+              const isSel = sel.includes(optIdx);
+              const isCorr = q.correct.includes(optIdx);
+              let cls = 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500';
+              if (isSub) {
+                if (isCorr) cls = 'border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/20';
+                else if (isSel && !isCorr) cls = 'border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/20';
+                else cls = 'border-gray-200 dark:border-gray-700 opacity-50';
+              } else if (isSel) {
+                cls = 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20';
+              }
+
+              return (
+                <button key={optIdx} onClick={() => toggle(q.id, optIdx, q.multi)} disabled={isSub}
+                  className={`w-full flex items-start gap-3 p-3 rounded-lg border-2 text-left text-sm leading-relaxed transition-colors ${cls} ${isSub ? 'cursor-default' : 'cursor-pointer'}`}>
+                  <span className={`flex-shrink-0 w-5 h-5 mt-0.5 flex items-center justify-center text-xs font-bold border-2 ${q.multi ? 'rounded' : 'rounded-full'} ${
+                    isSub
+                      ? (isCorr ? 'border-green-500 bg-green-500 text-white' : (isSel ? 'border-red-500 bg-red-500 text-white' : 'border-gray-300 dark:border-gray-600'))
+                      : (isSel ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-gray-300 dark:border-gray-600')
+                  }`}>
+                    {isSub ? (isCorr ? '✓' : (isSel ? '✗' : '')) : (isSel ? '✓' : '')}
+                  </span>
+                  <span className={isSub && !isCorr && !isSel ? 'text-gray-400 dark:text-gray-500' : ''}>{opt}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {!isSub && (
+            <button onClick={() => submit(q.id)} disabled={sel.length === 0}
+              className={`mt-4 w-full py-3 rounded-xl text-sm font-semibold transition-colors ${sel.length === 0 ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer'}`}>
+              Bekräfta svar
+            </button>
+          )}
+
+          {isSub && (
+            <div className={`mt-4 p-4 rounded-lg border-l-4 ${correct ? 'bg-green-50 dark:bg-green-900/10 border-green-500' : 'bg-red-50 dark:bg-red-900/10 border-red-500'}`}>
+              <p className={`text-sm font-bold mb-1 ${correct ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {correct ? '✅ Rätt!' : '❌ Fel'}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{q.explanation}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center mb-8">
+          <button onClick={() => setIdx(i => i-1)} disabled={idx === 0}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 disabled:opacity-30 transition-colors">
+            Föregående
+          </button>
+
+          {idx < shuffledQs.length - 1 ? (
+            <button onClick={() => setIdx(i => i+1)}
+              className="px-5 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+              Nästa fråga
+            </button>
+          ) : (
+            <button onClick={() => setShowSummary(true)}
+              className="px-5 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors">
+              Visa resultat
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ────────────── main app ────────────── */
+function App({ questions }) {
+  const allCategories = useMemo(() => [...new Set(questions.map(q => q.category))], [questions]);
+
+  const [dark, setDark]                       = useState(() => localStorage.getItem('quiz-dark') === 'true');
+  const [mode, setMode]                       = useState(null);
+  const [currentIdx, setCurrentIdx]           = useState(0);
+  const [answers, setAnswers]                 = useState({});
+  const [showAnswer, setShowAnswer]           = useState(false);
+  const [needsPractice, setNeedsPractice]     = useState(() => { try { return JSON.parse(localStorage.getItem('quiz-np') || '[]'); } catch { return []; } });
+  const [practiced, setPracticed]             = useState(() => { try { return JSON.parse(localStorage.getItem('quiz-pr') || '[]'); } catch { return []; } });
+  const [catFilter, setCatFilter]             = useState('all');
+  const [freqFilter, setFreqFilter]           = useState(0);
+  const [onlyNP, setOnlyNP]                   = useState(false);
+  const [examQs, setExamQs]                   = useState([]);
+  const [examSubmitted, setExamSubmitted]     = useState(false);
+  const [examDuration, setExamDuration]       = useState(14400);
+  const [timeLeft, setTimeLeft]               = useState(14400);
+  const [examRunning, setExamRunning]         = useState(false);
+
+  /* persist */
+  useEffect(() => { localStorage.setItem('quiz-dark', dark); document.documentElement.classList.toggle('dark', dark); }, [dark]);
+  useEffect(() => { localStorage.setItem('quiz-np', JSON.stringify(needsPractice)); }, [needsPractice]);
+  useEffect(() => { localStorage.setItem('quiz-pr', JSON.stringify(practiced)); }, [practiced]);
+
+  /* timer */
+  useEffect(() => {
+    if (!examRunning || examSubmitted) return;
+    const id = setInterval(() => setTimeLeft(t => { if (t <= 1) { setExamRunning(false); setExamSubmitted(true); return 0; } return t-1; }), 1000);
+    return () => clearInterval(id);
+  }, [examRunning, examSubmitted]);
+
+  const filtered = useMemo(() => {
+    let qs = questions;
+    if (catFilter !== 'all') qs = qs.filter(q => q.category === catFilter);
+    if (freqFilter > 0) qs = qs.filter(q => getFreqLevel(q.frequency) >= freqFilter);
+    if (onlyNP) qs = qs.filter(q => needsPractice.includes(q.id));
+    return qs;
+  }, [questions, catFilter, freqFilter, onlyNP, needsPractice]);
+
+  const curQ       = mode === 'exam' ? examQs[currentIdx] : filtered[currentIdx];
+  const totalQ     = mode === 'exam' ? examQs.length : filtered.length;
+
+  function startLearn() { setMode('learn'); setCurrentIdx(0); setShowAnswer(false); setAnswers({}); }
+  function startExam() {
+    const shuffled = [...questions].sort(() => Math.random() - 0.5);
+    const picked = []; const cats = new Set();
+    for (const q of shuffled) { if (picked.length >= 8) break; if (!cats.has(q.category) || picked.length >= shuffled.length - 8) { picked.push(q); cats.add(q.category); } }
+    for (const q of shuffled) { if (picked.length >= 8) break; if (!picked.includes(q)) picked.push(q); }
+    setExamQs(picked.slice(0,8)); setMode('exam'); setCurrentIdx(0); setAnswers({}); setExamSubmitted(false); setTimeLeft(examDuration); setExamRunning(true);
+  }
+  function goHome() { setMode(null); setExamRunning(false); setExamSubmitted(false); setCurrentIdx(0); setShowAnswer(false); }
+
+  const toggleNP = id => setNeedsPractice(p => p.includes(id) ? p.filter(x=>x!==id) : [...p, id]);
+  const markPr   = id => { if (!practiced.includes(id)) setPracticed(p => [...p, id]); };
+  const setAns   = (id,v) => setAnswers(p => ({...p, [id]: v}));
+
+  const ThemeBtn = () => (
+    <button onClick={() => setDark(!dark)} className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" title="Växla tema">
+      {dark ? '☀️' : '🌙'}
+    </button>
+  );
+
+  /* ═══════════ CONCEPT QUIZ MODE ═══════════ */
+  if (mode === 'concepts') {
+    return <ConceptQuiz onBack={goHome} dark={dark} setDark={setDark} />;
+  }
+
+  /* ═══════════ START SCREEN ═══════════ */
+  if (mode === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+        <div className="max-w-3xl mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">SYSA12 Tentamen Quiz</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">Interaktionsdesign &mdash; Lunds universitet</p>
+            </div>
+            <ThemeBtn />
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            {[[questions.length,'Frågor totalt',''],[ practiced.length,'Övade','text-green-600 dark:text-green-400'],[ needsPractice.length,'Behöver öva','text-orange-600 dark:text-orange-400']].map(([n,l,c],i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm text-center">
+                <div className={`text-2xl font-bold ${c}`}>{n}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">{l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Mode cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+            <button onClick={startLearn} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-left border-2 border-transparent hover:border-blue-500">
+              <div className="text-lg font-semibold mb-2">📖 Lärläge</div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Öva fråga för fråga med omedelbar återkoppling. Se A-nivå svar direkt.</p>
+            </button>
+            <button onClick={startExam} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-left border-2 border-transparent hover:border-purple-500">
+              <div className="text-lg font-semibold mb-2">📝 Provläge</div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Simulera en riktig tentamen med 8 frågor, timer och poängbedömning.</p>
+            </button>
+            <button onClick={() => setMode('concepts')} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-left border-2 border-transparent hover:border-indigo-500">
+              <div className="text-lg font-semibold mb-2">🧠 Begrepps-quiz</div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">50 flervalsfrågor på begrepp och teorier från kurslitteraturen.</p>
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6">
+            <h2 className="font-semibold mb-4">Filter (för lärläge)</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Kategori</label>
+                <select value={catFilter} onChange={e => setCatFilter(e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm">
+                  <option value="all">Alla kategorier</option>
+                  {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Minsta frekvens</label>
+                <select value={freqFilter} onChange={e => setFreqFilter(+e.target.value)} className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm">
+                  <option value={0}>Alla</option><option value={1}>Låg och uppåt</option><option value={2}>Medel och uppåt</option><option value={3}>Hög och uppåt</option><option value={4}>Bara mycket hög</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={onlyNP} onChange={e => setOnlyNP(e.target.checked)} className="rounded" />
+                <span className="text-sm">Visa bara frågor markerade "behöver öva"</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Exam time */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6">
+            <h2 className="font-semibold mb-4">Provtid</h2>
+            <select value={examDuration} onChange={e => setExamDuration(+e.target.value)} className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm">
+              <option value={1800}>30 minuter</option><option value={3600}>1 timme</option><option value={7200}>2 timmar</option><option value={10800}>3 timmar</option><option value={14400}>4 timmar (riktig tenta)</option>
+            </select>
+          </div>
+
+          <button onClick={() => { setPracticed([]); setNeedsPractice([]); }} className="text-sm text-gray-400 hover:text-red-500 transition-colors">Återställ all progress</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ═══════════ LEARN MODE ═══════════ */
+  if (mode === 'learn') {
+    if (!filtered.length) return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center">
+        <div className="text-center"><p className="text-lg mb-4">Inga frågor matchar dina filter.</p><button onClick={goHome} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Tillbaka</button></div>
+      </div>
+    );
+    const q = curQ;
+    if (!q) { setCurrentIdx(0); return null; }
+    const fb = getFreqBadge(q.frequency);
+
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex justify-between items-center mb-6">
+            <button onClick={goHome} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">&larr; Tillbaka</button>
+            <div className="flex items-center gap-3"><span className="text-sm text-gray-500 dark:text-gray-400">Lärläge</span><ThemeBtn /></div>
+          </div>
+
+          {/* Progress */}
+          <div className="mb-6">
+            <div className="flex justify-between text-sm mb-1"><span>Fråga {currentIdx+1} av {totalQ}</span><span>{q.points}</span></div>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full transition-all" style={{width:`${((currentIdx+1)/totalQ)*100}%`}}></div>
+            </div>
+          </div>
+
+          {/* Question */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">{q.category}</span>
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${fb.bg}`}>{q.frequency}</span>
+              {practiced.includes(q.id) && <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">Övad</span>}
+            </div>
+            <h2 className="text-lg font-semibold leading-relaxed whitespace-pre-wrap">{q.question}</h2>
+          </div>
+
+          {/* Textarea */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Ditt svar</label>
+            <textarea value={answers[q.id]||''} onChange={e=>{setAns(q.id,e.target.value);markPr(q.id);}} placeholder="Skriv ditt svar här..." className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 min-h-[200px] text-base leading-relaxed focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+          </div>
+
+          {!showAnswer && <button onClick={()=>setShowAnswer(true)} className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors mb-6">Visa A-nivå svar</button>}
+
+          {showAnswer && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 mb-6">
+              <h3 className="font-semibold text-green-700 dark:text-green-400 mb-3">A-nivå modellsvar</h3>
+              <div className="whitespace-pre-wrap text-base leading-relaxed">{q.answer}</div>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3 mb-8">
+            <button onClick={()=>toggleNP(q.id)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${needsPractice.includes(q.id)?'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300':'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
+              {needsPractice.includes(q.id)?'✓ Markerad: behöver öva':'Markera: behöver öva'}
+            </button>
+            <div className="flex-1" />
+            <button disabled={currentIdx===0} onClick={()=>{setCurrentIdx(i=>i-1);setShowAnswer(false);}} className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 disabled:opacity-30 transition-colors">Föregående</button>
+            <button disabled={currentIdx>=totalQ-1} onClick={()=>{setCurrentIdx(i=>i+1);setShowAnswer(false);}} className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-30 transition-colors">Nästa fråga</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ═══════════ EXAM MODE ═══════════ */
+  if (mode === 'exam') {
+    const totalMax = examQs.reduce((s,q) => s + parseMaxPts(q.points), 0);
+
+    if (!examSubmitted) {
+      const q = curQ;
+      const answeredN = examQs.filter(eq => (answers[eq.id]||'').trim()).length;
+      return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+          <div className="max-w-4xl mx-auto px-4 py-6">
+            <div className="flex justify-between items-center mb-6">
+              <button onClick={goHome} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">&larr; Avbryt prov</button>
+              <div className="flex items-center gap-4">
+                <span className={`font-mono text-lg font-bold ${timeLeft<600?'text-red-600 dark:text-red-400 animate-pulse':'text-gray-700 dark:text-gray-300'}`}>{fmtTime(timeLeft)}</span>
+                <ThemeBtn />
+              </div>
+            </div>
+
+            {/* Question nav pills */}
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {examQs.map((eq,i) => (
+                <button key={eq.id} onClick={()=>setCurrentIdx(i)} className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${i===currentIdx?'bg-purple-600 text-white':(answers[eq.id]||'').trim()?'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300':'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>{i+1}</button>
+              ))}
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-6">
+              <div className="flex justify-between items-start mb-3">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Fråga {currentIdx+1} av {examQs.length}</span>
+                <span className="text-sm font-medium">{q.points}</span>
+              </div>
+              <h2 className="text-lg font-semibold leading-relaxed whitespace-pre-wrap">{q.question}</h2>
+            </div>
+
+            <textarea value={answers[q.id]||''} onChange={e=>setAns(q.id,e.target.value)} placeholder="Skriv ditt svar här..." className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 min-h-[250px] text-base leading-relaxed focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-6" />
+
+            <div className="flex flex-wrap gap-3 items-center mb-8">
+              <button disabled={currentIdx===0} onClick={()=>setCurrentIdx(i=>i-1)} className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 disabled:opacity-30 transition-colors">Föregående</button>
+              <button disabled={currentIdx>=examQs.length-1} onClick={()=>setCurrentIdx(i=>i+1)} className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-30 transition-colors">Nästa</button>
+              <div className="flex-1" />
+              <span className="text-sm text-gray-500 dark:text-gray-400">{answeredN}/{examQs.length} besvarade</span>
+              <button onClick={()=>{setExamRunning(false);setExamSubmitted(true);}} className="px-6 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors">Lämna in</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ── results ── */
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex justify-between items-center mb-6">
+            <button onClick={goHome} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">&larr; Tillbaka till start</button>
+            <ThemeBtn />
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm mb-8 text-center">
+            <h2 className="text-2xl font-bold mb-2">Provet är inlämnat!</h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">Maxpoäng: {totalMax}p &middot; Tid använd: {fmtTime(examDuration - timeLeft)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Jämför ditt svar med modellsvaret nedan. Betygsskala:</p>
+            <div className="flex justify-center gap-3 flex-wrap text-xs">
+              {[['A','85-100%'],['B','75-84%'],['C','65-74%'],['D','55-64%'],['E','50-54%'],['U','<50%']].map(([g,r])=>(
+                <span key={g} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">{g}: {r}</span>
+              ))}
+            </div>
+          </div>
+
+          {examQs.map((q,i) => {
+            const fb = getFreqBadge(q.frequency);
+            const ua = (answers[q.id]||'').trim();
+            return (
+              <div key={q.id} className="mb-8">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm">
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">Fråga {i+1}</span>
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">{q.category}</span>
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${fb.bg}`}>{fb.label}</span>
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">{q.points}</span>
+                  </div>
+                  <h3 className="font-semibold leading-relaxed mb-4 whitespace-pre-wrap">{q.question}</h3>
+
+                  <div className={`rounded-lg p-4 mb-4 ${ua?'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800':'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+                    <div className="text-sm font-medium mb-2 text-blue-700 dark:text-blue-300">Ditt svar</div>
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">{ua || '(Inget svar)'}</div>
+                  </div>
+
+                  <div className="rounded-lg p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                    <div className="text-sm font-medium mb-2 text-green-700 dark:text-green-400">A-nivå modellsvar</div>
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">{q.answer}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5 mb-6 text-center">
+            <p className="text-sm text-amber-800 dark:text-amber-300 mb-3">Vill du få ditt prov rättat? Ladda ner filen nedan och ladda upp den till valfri AI (t.ex. ChatGPT, Claude eller Gemini) — filen innehåller allt som behövs för att rätta dina svar.</p>
+            <button onClick={() => generateGradingFile(examQs, answers, totalMax, fmtTime(examDuration - timeLeft))} className="px-6 py-3 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 transition-colors">
+              Ladda ner fil för AI-rättning
+            </button>
+          </div>
+          <div className="text-center mb-8">
+            <button onClick={goHome} className="px-6 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors">Tillbaka till start</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+/* ────────────── bootstrap: load JSON then render ────────────── */
+fetch('quiz_data.json')
+  .then(r => r.json())
+  .then(data => {
+    ReactDOM.createRoot(document.getElementById('root')).render(
+      <App questions={data.questions} />
+    );
+  })
+  .catch(err => {
+    document.getElementById('root').innerHTML = '<p style="padding:2rem;color:red;">Kunde inte ladda quiz_data.json: ' + err.message + '</p>';
+  });
+  </script>
+</body>
+</html>
